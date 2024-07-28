@@ -5,7 +5,7 @@
     {% if user.is_authenticated %}
     <div class="new-post">
         <h2>New Post</h2>
-        <form method="post">
+        <form action="{% url 'compose' %}" method="POST">
             {% csrf_token %}
             <textarea 
                 name="content" 

@@ -1,14 +1,26 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import Post, User
 
 
 def index(request):
     return render(request, "network/index.html")
+
+
+def set_alert_message(
+    request: HttpRequest,
+    message: str,
+    level: int = messages.SUCCESS | messages.INFO | messages.WARNING | messages.ERROR,
+) -> None:
+    """
+    Helper function to set an alert message to be displayed
+    """
+    messages.add_message(request, level, message)
 
 
 def login_view(request):
@@ -24,9 +36,11 @@ def login_view(request):
             login(request, user)
             return HttpResponseRedirect(reverse("index"))
         else:
-            return render(request, "network/login.html", {
-                "message": "Invalid username and/or password."
-            })
+            return render(
+                request,
+                "network/login.html",
+                {"message": "Invalid username and/or password."},
+            )
     else:
         return render(request, "network/login.html")
 
@@ -45,19 +59,36 @@ def register(request):
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         if password != confirmation:
-            return render(request, "network/register.html", {
-                "message": "Passwords must match."
-            })
+            return render(
+                request, "network/register.html", {"message": "Passwords must match."}
+            )
 
         # Attempt to create new user
         try:
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
-            return render(request, "network/register.html", {
-                "message": "Username already taken."
-            })
+            return render(
+                request, "network/register.html", {"message": "Username already taken."}
+            )
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+
+def compose(request: HttpRequest) -> HttpResponse:
+    """
+    Compose a new post
+    """
+    if request.method == "POST":
+        content = request.POST["content"]
+        user = User.objects.get(pk=request.user.id)
+        post = Post(user=user, content=content)
+        post.save()
+        set_alert_message(request, "Post created successfully!", messages.SUCCESS)
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        # If the request method is not POST, redirect back to index and show an error alert
+        set_alert_message(request, "Invalid request method", messages.ERROR)
+        return HttpResponseRedirect(reverse("index"))

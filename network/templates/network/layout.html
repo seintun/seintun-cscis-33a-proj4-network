@@ -42,6 +42,27 @@
           </nav>
         
         <div class="body">
+            <div>
+                {% if messages %}
+                <div class="alert-banner">
+                    {% for message in messages %}
+                        {% if message.tags == 'success' %}
+                        <div class="alert alert-success">
+                            {{ message }}
+                        </div>
+                        {% elif message.tags == 'error' %}
+                        <div class="alert alert-danger">
+                            {{ message }}
+                        </div>
+                        {% elif message.tags == 'info' %}
+                        <div class="alert alert-info">
+                            {{ message }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
             {% block body %}
             {% endblock %}
         </div>
