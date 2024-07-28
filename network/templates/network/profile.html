@@ -3,6 +3,17 @@
 
 {% block body %}
     <h1>{{ user.username }} Posts</h1>
+    <!-- Display user's followers and following count -->
+    {% if user.is_authenticated %}
+        <div>
+            <button type="button" class="btn btn-primary">
+                Followers <span class="badge badge-light">4</span>
+            </button>
+            <button type="button" class="btn btn-info">
+                Following <span class="badge badge-light">4</span>
+            </button>
+        </div>
+    {% endif %}
     <div class="post-container">
         <nav aria-label="..." class="pagination-container">
             <ul class="pagination">
