@@ -1,4 +1,4 @@
-.new-post {
+.post-container {
   margin: 20px;
   padding: 25px;
   border: 1px solid #ccc;
@@ -6,9 +6,30 @@
   background-color: #f9f9f9;
 }
 
-.new-post textarea {
+.post-container textarea {
   margin-bottom: 10px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+.post {
+  margin-bottom: 25px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  position: relative;
+}
+
+/* Display the delete icon to the top right of the post */
+.post .delete-post {
+  position: absolute;
+  top: -15px;
+  right: -5px;
+}
+
+.post .delete-post img {
+  width: 25px;
+  height: 25px;
 }

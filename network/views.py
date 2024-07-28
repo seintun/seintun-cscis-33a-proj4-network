@@ -2,14 +2,19 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import get_list_or_404, get_object_or_404, render
 from django.urls import reverse
 
 from .models import Post, User
 
 
-def index(request):
-    return render(request, "network/index.html")
+def index(request: HttpRequest) -> HttpResponse:
+    """
+    Home page view
+    """
+    # Get all posts
+    posts = get_list_or_404(Post.objects.all().order_by("-timestamp"))
+    return render(request, "network/index.html", {"posts": posts})
 
 
 def set_alert_message(
@@ -83,8 +88,8 @@ def compose(request: HttpRequest) -> HttpResponse:
     """
     if request.method == "POST":
         content = request.POST["content"]
-        user = User.objects.get(pk=request.user.id)
-        post = Post(user=user, content=content)
+        user = get_object_or_404(User, username=request.user.username)
+        post = get_object_or_404(Post, user=user, content=content)
         post.save()
         set_alert_message(request, "Post created successfully!", messages.SUCCESS)
         return HttpResponseRedirect(reverse("index"))
@@ -92,3 +97,14 @@ def compose(request: HttpRequest) -> HttpResponse:
         # If the request method is not POST, redirect back to index and show an error alert
         set_alert_message(request, "Invalid request method", messages.ERROR)
         return HttpResponseRedirect(reverse("index"))
+
+
+def delete_post(request: HttpRequest, post_id: int) -> HttpResponse:
+    """
+    Delete a post
+    """
+    post = get_object_or_404(Post, id=post_id)
+    if request.user == post.user:
+        post.delete()
+    set_alert_message(request, "Post deleted successfully!", messages.SUCCESS)
+    return HttpResponseRedirect(reverse("index"))
