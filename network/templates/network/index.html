@@ -1,5 +1,22 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    TODO
+    <h1>All Posts</h1>
+    {% if user.is_authenticated %}
+    <div class="new-post">
+        <h2>New Post</h2>
+        <form method="post">
+            {% csrf_token %}
+            <textarea 
+                name="content" 
+                class="form-control" 
+                id="new-post" 
+                placeholder="Enter your new post content here">
+            </textarea>
+            <button type="submit" class="btn btn-primary">Post</button>
+        </form>
+    </div>
+    {% else %}
+        <p>You must be <a href="{% url 'login' %}">logged in</a> to post.</p>
+    {% endif %}
 {% endblock %}
