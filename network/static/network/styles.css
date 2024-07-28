@@ -1,6 +1,12 @@
 .pagination-container {
   display: flex;
-  justify-content: right;
+  flex-direction: column;
+  align-items: flex-end; /* Align items to the right */
+}
+
+.pagination {
+  padding: 0;
+  margin: 0;
 }
 
 .post-container {

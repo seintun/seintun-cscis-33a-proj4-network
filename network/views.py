@@ -87,6 +87,20 @@ def register(request):
         return render(request, "network/register.html")
 
 
+def user_profile(request: HttpRequest, username: str) -> HttpResponse:
+    """
+    User profile view with all posts by the user
+    """
+    user = get_object_or_404(User, username=username)
+    posts = get_list_or_404(Post.objects.filter(user=user).order_by("-timestamp"))
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get("page")
+    paginated_posts = paginator.get_page(page_number)
+    return render(
+        request, "network/profile.html", {"user": user, "posts": paginated_posts}
+    )
+
+
 def compose(request: HttpRequest) -> HttpResponse:
     """
     Compose a new post

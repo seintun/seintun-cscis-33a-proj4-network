@@ -2,26 +2,7 @@
 {% load static %}
 
 {% block body %}
-    <h1>All Posts</h1>
-    {% if user.is_authenticated %}
-        <div class="post-container">
-            <h2>New Post</h2>
-            <form action="{% url 'compose' %}" method="POST">
-                {% csrf_token %}
-                <textarea 
-                    name="content" 
-                    class="form-control" 
-                    id="new-post" 
-                    placeholder="Enter your new post content here"
-                    required
-                >
-                </textarea>
-                <button type="submit" class="btn btn-primary">Post</button>
-            </form>
-        </div>
-        {% else %}
-            <p>You must be <a href="{% url 'login' %}">logged in</a> to post.</p>
-    {% endif %}
+    <h1>{{ user.username }} Posts</h1>
     <div class="post-container">
         <nav aria-label="..." class="pagination-container">
             <ul class="pagination">
@@ -67,6 +48,7 @@
                     {% endif %}
                 </li>
             </ul>
+            <!-- add page out of total pages -->
             <p>Displaying ({{ posts.start_index }} - {{ posts.end_index }}) of {{ posts.paginator.count }} posts</p>
         </nav>
         {% for post in posts %}
@@ -85,8 +67,4 @@
             </div>
         {% endfor %}
     </div>
-{% endblock %}
-
-{% block script %}
-    <script src="{% static 'network/index.js' %}"></script>
 {% endblock %}
