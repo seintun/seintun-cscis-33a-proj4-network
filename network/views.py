@@ -89,7 +89,7 @@ def compose(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         content = request.POST["content"]
         user = get_object_or_404(User, username=request.user.username)
-        post = get_object_or_404(Post, user=user, content=content)
+        post = Post(content=content, user=user)
         post.save()
         set_alert_message(request, "Post created successfully!", messages.SUCCESS)
         return HttpResponseRedirect(reverse("index"))

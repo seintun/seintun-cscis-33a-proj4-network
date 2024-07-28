@@ -33,3 +33,9 @@
   width: 25px;
   height: 25px;
 }
+
+.username {
+  font-weight: bold;
+  font-size: 20px;
+  color: orangered;
+}
