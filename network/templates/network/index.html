@@ -23,8 +23,53 @@
             <p>You must be <a href="{% url 'login' %}">logged in</a> to post.</p>
     {% endif %}
     <div class="post-container">
+        <nav aria-label="..." class="pagination-container">
+            <ul class="pagination">
+                <li 
+                    class="page-item 
+                        {% if not posts.has_previous %}
+                            disabled
+                        {% endif %}"
+                >
+                    {% if posts.has_previous %}
+                        <a class="page-link" href="?page={{ posts.previous_page_number }}">Previous</a>
+                    {% else %}
+                        <span class="page-link">Previous</span>
+                    {% endif %}
+                </li>
+                {% for page in posts.paginator.page_range %}
+                    <li
+                        class="page-item 
+                            {% if page == posts.number %}
+                                active
+                            {% endif %} 
+                            {% if page < 1 or page > posts.paginator.num_pages %}
+                                disabled
+                            {% endif %}"
+                    >
+                        {% if page == posts.number %}
+                            <span class="page-link">{{ page }}</span>
+                        {% else %}
+                            <a class="page-link" href="?page={{ page }}">{{ page }}</a>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+                <li 
+                    class="page-item 
+                        {% if not posts.has_next %}
+                            disabled
+                        {% endif %}"
+                >
+                    {% if posts.has_next %}
+                        <a class="page-link" href="?page={{ posts.next_page_number }}">Next</a>
+                    {% else %}
+                        <span class="page-link">Next</span>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
         {% for post in posts %}
-            <div class="post">
+            <div class="post" id={{post.id}}>
                 <div class="d-flex w-100 justify-content-between">
                     <h2 class="username">@{{ post.user.username }}</h2>
                     <small>{{ post.timestamp }}</small>

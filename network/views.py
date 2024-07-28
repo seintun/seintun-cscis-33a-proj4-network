@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_list_or_404, get_object_or_404, render
 from django.urls import reverse
+from django.core.paginator import Paginator
 
 from .models import Post, User
 
@@ -14,7 +15,11 @@ def index(request: HttpRequest) -> HttpResponse:
     """
     # Get all posts
     posts = get_list_or_404(Post.objects.all().order_by("-timestamp"))
-    return render(request, "network/index.html", {"posts": posts})
+    # Paginate posts
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get("page")
+    paginated_posts = paginator.get_page(page_number)
+    return render(request, "network/index.html", {"posts": paginated_posts})
 
 
 def set_alert_message(
