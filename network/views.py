@@ -93,6 +93,7 @@ def user_profile(request: HttpRequest, username: str) -> HttpResponse:
     """
     user = get_object_or_404(User, username=username)
     posts = get_list_or_404(Post.objects.filter(user=user).order_by("-timestamp"))
+
     # Get the following status of the user
     followers = Follow.objects.filter(user_follower=user)
     following = Follow.objects.filter(user=user)
@@ -103,6 +104,7 @@ def user_profile(request: HttpRequest, username: str) -> HttpResponse:
     paginator = Paginator(posts, 10)
     page_number = request.GET.get("page")
     paginated_posts = paginator.get_page(page_number)
+
     return render(
         request,
         "network/profile.html",
@@ -122,10 +124,17 @@ def follow(request: HttpRequest, user_follower: str) -> HttpResponse:
     """
     current_user = get_object_or_404(User, username=request.user.username)
     user_follower_object = get_object_or_404(User, username=user_follower)
-    follow_object = Follow(user=current_user, user_follower=user_follower_object)
-    follow_object.save()
 
-    messages.success(request, "Followed successfully!")
+    # Check if already following to avoid duplicate entries
+    if not Follow.objects.filter(
+        user=current_user, user_follower=user_follower_object
+    ).exists():
+        follow_object = Follow(user=current_user, user_follower=user_follower_object)
+        follow_object.save()
+        messages.success(request, "Followed successfully!")
+    else:
+        messages.error(request, "You are already following this user.")
+
     return HttpResponseRedirect(
         reverse("user_profile", kwargs={"username": user_follower})
     )
@@ -137,15 +146,18 @@ def unfollow(request: HttpRequest, user_follower: str) -> HttpResponse:
     """
     current_user = get_object_or_404(User, username=request.user.username)
     user_follower_object = get_object_or_404(User, username=user_follower)
-    follow_object = Follow.objects.filter(
+
+    # Check if the follow relationship exists
+    follow_relationship = Follow.objects.filter(
         user=current_user, user_follower=user_follower_object
     ).first()
 
-    if follow_object:
-        follow_object.delete()
+    if follow_relationship:
+        follow_relationship.delete()
         messages.success(request, "Unfollowed successfully!")
     else:
         messages.error(request, "You are not following this user.")
+
     return HttpResponseRedirect(
         reverse("user_profile", kwargs={"username": user_follower})
     )
