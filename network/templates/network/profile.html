@@ -2,16 +2,41 @@
 {% load static %}
 
 {% block body %}
-    <h1>{{ user.username }} Posts</h1>
-    <!-- Display user's followers and following count -->
+<!-- Display user's followers and following count -->
     {% if user.is_authenticated %}
-        <div>
-            <button type="button" class="btn btn-primary">
-                Followers <span class="badge badge-light">4</span>
-            </button>
-            <button type="button" class="btn btn-info">
-                Following <span class="badge badge-light">4</span>
-            </button>
+        <div class="user-info">
+            <h1>{{ user.username }} Posts</h1>
+            {% if is_following %}
+                <form action="{% url 'unfollow' user.username%}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_follower" value="{{ user }}">
+                    <button type="submit" class="btn btn-danger">
+                        Unfollow
+                    </button>
+                </form>
+            {% else %}
+                <form action="{% url 'follow' user.username %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="user_follower" value="{{ user }}">
+                    <button type="submit" class="btn btn-success">
+                        Follow
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+        <div class="user-info">
+            <div>
+                Followers 
+                <span class="badge badge-info">
+                    {{ followers.count|default:"0" }}
+                </span>
+            </div>
+            <div>
+                Following 
+                <span class="badge badge-info">
+                    {{ following.count|default:"0" }}
+                </span>
+            </div>
         </div>
     {% endif %}
     <div class="post-container">
