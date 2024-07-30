@@ -3,27 +3,8 @@
 
 {% block body %}
     <div class="user-info">
-        <h1>All Posts</h1>
+        <h1>My Followers' Posts</h1>
     </div>
-    {% if user.is_authenticated %}
-        <div class="post-container">
-            <h2>New Post</h2>
-            <form action="{% url 'compose' %}" method="POST">
-                {% csrf_token %}
-                <textarea 
-                    name="content" 
-                    class="form-control" 
-                    id="new-post" 
-                    placeholder="Enter your new post content here"
-                    required
-                >
-                </textarea>
-                <button type="submit" class="btn btn-primary">Post</button>
-            </form>
-        </div>
-        {% else %}
-            <p>You must be <a href="{% url 'login' %}">logged in</a> to post.</p>
-    {% endif %}
     <div class="post-container">
         <nav aria-label="..." class="pagination-container">
             <ul class="pagination">

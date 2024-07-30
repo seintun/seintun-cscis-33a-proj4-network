@@ -118,6 +118,25 @@ def user_profile(request: HttpRequest, username: str) -> HttpResponse:
     )
 
 
+def following(request: HttpRequest) -> HttpResponse:
+    """
+    Display all posts by users that the current user is following
+    """
+    current_user = get_object_or_404(User, username=request.user.username)
+    following_object = get_list_or_404(Follow.objects.filter(user=current_user))
+    posts = get_list_or_404(
+        Post.objects.filter(
+            user__in=[follow.user_follower for follow in following_object]
+        ).order_by("-timestamp")
+    )
+
+    paginator = Paginator(posts, 10)
+    page_number = request.GET.get("page")
+    paginated_posts = paginator.get_page(page_number)
+
+    return render(request, "network/following.html", {"posts": paginated_posts})
+
+
 def follow(request: HttpRequest, user_follower: str) -> HttpResponse:
     """
     Follow a user profile with the given username
