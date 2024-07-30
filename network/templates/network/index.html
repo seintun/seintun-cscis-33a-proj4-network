@@ -16,8 +16,7 @@
                     id="new-post" 
                     placeholder="Enter your new post content here"
                     required
-                >
-                </textarea>
+                ></textarea>
                 <button type="submit" class="btn btn-primary">Post</button>
             </form>
         </div>
@@ -80,17 +79,51 @@
                         </a>
                     </h2>
                     <small>{{ post.timestamp }}</small>
-                    <!-- add delete icon -->
                     {% if user.is_authenticated and user == post.user %}
+                        <div class="edit-post">
+                            <button 
+                                data-toggle="modal" 
+                                data-target="#modal_{{ post.id }}" data-post-id="{{ post.id }}">
+                                Edit <img src="{% static 'network/images/edit_pen.png' %}" alt="edit post icon">
+                            </button>
+                        </div>
                         <a href="{% url 'delete_post' post.id %}" class="delete-post">
                             <img src="{% static 'network/images/bin.png' %}" alt="delete post icon">
                         </a>
+                        <!-- Bootstrap Modal -->
+                        <div class="modal fade" id="modal_{{ post.id }}" tabindex="-1" role="dialog">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modal_label_{{ post.id}}">Edit Post</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <textarea 
+                                            name="content" 
+                                            class="form-control" 
+                                            id="edit_post_{{ post.id }}" 
+                                            placeholder="Enter your updated post content here"
+                                            rows="25"
+                                            required
+                                        >{{ post.content }}</textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="handleEditPost('{{ post.id }}')">Save changes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     {% endif %}
                 </div>
-                <p>"{{ post.content }}"</p>
+                <p id="post_content_{{ post.id }}">"{{ post.content }}"</p>
             </div>
         {% endfor %}
     </div>
+    
 {% endblock %}
 
 {% block script %}

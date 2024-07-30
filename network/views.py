@@ -1,7 +1,9 @@
+import json
+import uuid
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db import IntegrityError
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_list_or_404, get_object_or_404, render
 from django.urls import reverse
 from django.core.paginator import Paginator
@@ -199,7 +201,23 @@ def compose(request: HttpRequest) -> HttpResponse:
         return HttpResponseRedirect(reverse("index"))
 
 
-def delete_post(request: HttpRequest, post_id: int) -> HttpResponse:
+def edit_post(request: HttpRequest, post_id: uuid) -> HttpResponse:
+    """
+    Edit a post
+    """
+    post = get_object_or_404(Post, id=post_id)
+    if request.method == "POST":
+        data = json.loads(request.body)
+        print(f"view {data}")
+        post.content = data["content"]
+        post.save()
+        set_alert_message(request, "Post updated successfully!", messages.SUCCESS)
+        return JsonResponse(
+            {"message": "Post updated successfully!", "data": post.content}
+        )
+
+
+def delete_post(request: HttpRequest, post_id: uuid) -> HttpResponse:
     """
     Delete a post
     """
