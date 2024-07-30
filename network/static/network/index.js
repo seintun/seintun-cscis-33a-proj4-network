@@ -1,6 +1,3 @@
-document.addEventListener('DOMContentLoaded', function () {
-});
-
 // Get cookie for crsf token
 // https://www.w3schools.com/js/js_cookies.asp
 function getCookie(cname) {
@@ -41,4 +38,41 @@ function handleEditPost(postId) {
         .catch((error) => {
             console.error('Error:', error);
         });
-}   
+}
+
+
+function handleLikePost(postId) {
+    console.log(`Like post ${postId}`);
+    fetch(`/like_post/${postId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+    })
+        .then(response => response.json())
+        .then(result => {
+            console.log(result);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+}
+
+function handleUnlikePost(postId) {
+    console.log(`Unlike post ${postId}`);
+    fetch(`/unlike_post/${postId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+    })
+        .then(response => response.json())
+        .then(result => {
+            console.log(result);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+}

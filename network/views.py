@@ -1,6 +1,7 @@
 import json
 import uuid
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -8,15 +9,40 @@ from django.shortcuts import get_list_or_404, get_object_or_404, render
 from django.urls import reverse
 from django.core.paginator import Paginator
 
-from .models import Post, User, Follow
+from .models import Post, User, Follow, Like
+
+
+def get_users_who_like_post(post_id: uuid) -> list:
+    """
+    Get all users who liked the post with the given post_id
+    """
+    post = Post.objects.get(id=post_id)
+    users = Like.objects.filter(post=post).values("id", "user_id", "post_id")
+    return users
 
 
 def index(request: HttpRequest) -> HttpResponse:
     """
     Home page view
+    posts: list[{
+        id: uuid,
+        user: User,
+        content: str,
+        timestamp: datetime,
+        user_likes: list[User]
+        post_liked: bool
+    }]
     """
+    # Get id of current user
+    user_id = User.objects.get(username=request.user).id
     # Get all posts
     posts = get_list_or_404(Post.objects.all().order_by("-timestamp"))
+
+    # Add user_likes to each post
+    for post in posts:
+        post.user_likes = get_users_who_like_post(post.id)
+        post.post_liked = user_id in [user["user_id"] for user in post.user_likes]
+
     # Paginate posts
     paginator = Paginator(posts, 10)
     page_number = request.GET.get("page")
@@ -139,6 +165,7 @@ def following(request: HttpRequest) -> HttpResponse:
     return render(request, "network/following.html", {"posts": paginated_posts})
 
 
+@login_required
 def follow(request: HttpRequest, user_follower: str) -> HttpResponse:
     """
     Follow a user profile with the given username
@@ -161,6 +188,7 @@ def follow(request: HttpRequest, user_follower: str) -> HttpResponse:
     )
 
 
+@login_required
 def unfollow(request: HttpRequest, user_follower: str) -> HttpResponse:
     """
     Unfollow a user profile with the given username
@@ -184,6 +212,7 @@ def unfollow(request: HttpRequest, user_follower: str) -> HttpResponse:
     )
 
 
+@login_required
 def compose(request: HttpRequest) -> HttpResponse:
     """
     Compose a new post
@@ -201,6 +230,7 @@ def compose(request: HttpRequest) -> HttpResponse:
         return HttpResponseRedirect(reverse("index"))
 
 
+@login_required
 def edit_post(request: HttpRequest, post_id: uuid) -> HttpResponse:
     """
     Edit a post
@@ -208,7 +238,6 @@ def edit_post(request: HttpRequest, post_id: uuid) -> HttpResponse:
     post = get_object_or_404(Post, id=post_id)
     if request.method == "POST":
         data = json.loads(request.body)
-        print(f"view {data}")
         post.content = data["content"]
         post.save()
         set_alert_message(request, "Post updated successfully!", messages.SUCCESS)
@@ -217,6 +246,7 @@ def edit_post(request: HttpRequest, post_id: uuid) -> HttpResponse:
         )
 
 
+@login_required
 def delete_post(request: HttpRequest, post_id: uuid) -> HttpResponse:
     """
     Delete a post
@@ -226,3 +256,57 @@ def delete_post(request: HttpRequest, post_id: uuid) -> HttpResponse:
         post.delete()
     set_alert_message(request, "Post deleted successfully!", messages.SUCCESS)
     return HttpResponseRedirect(reverse("index"))
+
+
+@login_required
+def like_post(request: HttpRequest, post_id: uuid) -> JsonResponse:
+    """
+    Like a post
+    """
+    post = get_object_or_404(Post, id=post_id)
+    user = get_object_or_404(User, username=request.user.username)
+
+    # Check if the user has already liked the post
+    like = Like.objects.filter(user=user, post=post).first()
+
+    if not like:
+        like = Like(user=user, post=post)
+        like.save()
+        set_alert_message(request, "Post liked successfully!", messages.SUCCESS)
+        return JsonResponse(
+            {
+                "message": "Post liked successfully!",
+                "status": "success",
+            }
+        )
+    else:
+        return JsonResponse(
+            {"message": "You have already liked this post.", "status": "error"}
+        )
+
+
+@login_required
+def unlike_post(request: HttpRequest, post_id: uuid) -> JsonResponse:
+    """
+    Unlike a post
+    """
+    post = get_object_or_404(Post, id=post_id)
+    user = get_object_or_404(User, username=request.user.username)
+
+    # Check if the user has already liked the post
+    like = Like.objects.filter(user=user, post=post).first()
+
+    if like:
+        like.delete()
+        set_alert_message(request, "Post unliked successfully!", messages.SUCCESS)
+        return JsonResponse(
+            {
+                "message": "Post unliked successfully!",
+                "status": "success",
+                "data": get_users_who_like_post(post_id),
+            }
+        )
+    else:
+        return JsonResponse(
+            {"message": "You have not liked this post.", "status": "error"}
+        )

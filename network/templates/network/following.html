@@ -52,25 +52,29 @@
             </ul>
             <p>Displaying ({{ posts.start_index }} - {{ posts.end_index }}) of {{ posts.paginator.count }} posts</p>
         </nav>
-        {% for post in posts %}
-            <div class="post" id={{post.id}}>
-                <div class="d-flex w-100 justify-content-between">
-                    <h2 class="username">
-                        <a href="{% url 'user_profile' post.user.username %}">
-                            @{{ post.user.username }}
-                        </a>
-                    </h2>
-                    <small>{{ post.timestamp }}</small>
-                    <!-- add delete icon -->
-                    {% if user.is_authenticated and user == post.user %}
-                        <a href="{% url 'delete_post' post.id %}" class="delete-post">
-                            <img src="{% static 'network/images/bin.png' %}" alt="delete post icon">
-                        </a>
-                    {% endif %}
+        {% if posts %}
+            {% for post in posts %}
+                <div class="post" id={{post.id}}>
+                    <div class="d-flex w-100 justify-content-between">
+                        <h2 class="username">
+                            <a href="{% url 'user_profile' post.user.username %}">
+                                @{{ post.user.username }}
+                            </a>
+                        </h2>
+                        <small>{{ post.timestamp }}</small>
+                        <!-- add delete icon -->
+                        {% if user.is_authenticated and user == post.user %}
+                            <a href="{% url 'delete_post' post.id %}" class="delete-post">
+                                <img src="{% static 'network/images/bin.png' %}" alt="delete post icon">
+                            </a>
+                        {% endif %}
+                    </div>
+                    <p>"{{ post.content }}"</p>
                 </div>
-                <p>"{{ post.content }}"</p>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <p>No posts found.</p>
+        {% endif %}
     </div>
 {% endblock %}
 
