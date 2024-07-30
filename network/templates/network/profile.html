@@ -6,22 +6,25 @@
     {% if user.is_authenticated %}
         <div class="user-info">
             <h1>{{ user.username }} Posts</h1>
-            {% if is_following %}
-                <form action="{% url 'unfollow' user.username%}" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="user_follower" value="{{ user }}">
-                    <button type="submit" class="btn btn-danger">
-                        Unfollow
-                    </button>
-                </form>
-            {% else %}
-                <form action="{% url 'follow' user.username %}" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="user_follower" value="{{ user }}">
-                    <button type="submit" class="btn btn-success">
-                        Follow
-                    </button>
-                </form>
+            <!-- The current user should not be able to follow/unfollow themselves -->
+            {% if user != request.user %}
+                {% if is_following %}
+                    <form action="{% url 'unfollow' user.username%}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_follower" value="{{ user }}">
+                        <button type="submit" class="btn btn-danger">
+                            Unfollow
+                        </button>
+                    </form>
+                {% else %}
+                    <form action="{% url 'follow' user.username %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_follower" value="{{ user }}">
+                        <button type="submit" class="btn btn-success">
+                            Follow
+                        </button>
+                    </form>
+                {% endif %}
             {% endif %}
         </div>
         <div class="user-info">
