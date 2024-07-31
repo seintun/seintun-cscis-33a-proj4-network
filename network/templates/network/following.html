@@ -69,7 +69,31 @@
                             </a>
                         {% endif %}
                     </div>
-                    <p>"{{ post.content }}"</p>
+                    <p id="post_content_{{ post.id }}">"{{ post.content }}"</p>
+                    {% if user.is_authenticated %}
+                        {% if user != post.user %}
+                            {% if post.id in post_liked %}
+                                <div id="like_root_{{ post.id }}">
+                                    <button class="btn btn-primary" id="like_button_{{ post.id }}" onclick="handleLike('{{ post.id }}', true)">
+                                        <i class="bi bi-heart-fill" id="like_icon_{{ post.id }}">{{ post.like_count }}</i>
+                                    </button>
+                                </div>
+                            {% else %}
+                                    <div id="like_root_{{ post.id }}">
+                                        <button class="btn btn-outline-primary" id="{{ post.id }}" onclick="handleLike('{{ post.id }}', false)">
+                                            <i class="bi bi-heart" id="like_icon_{{ post.id }}">{{ post.like_count }}</i>
+                                        </button>
+                                    </div>
+                            {% endif %}
+                        {% else %}
+                            <!-- Disable like button for user's own posts -->
+                            <div id="like_root_{{ post.id }}">
+                                <button class="btn btn-outline-secondary like-disabled" id="{{ post.id }}" disabled>
+                                    <i class="bi bi-heart" id="like_icon_{{ post.id }}">{{ post.like_count }}</i>
+                                </button>
+                            </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
             {% endfor %}
         {% else %}

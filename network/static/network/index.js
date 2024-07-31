@@ -40,39 +40,62 @@ function handleEditPost(postId) {
         });
 }
 
+// Function to handle like button
+// Toggle like button and icon and update like count
+function handleLike(postId, isLiked) {
+    const likeButton = document.getElementById(`like_root_${postId}`);
+    const likeIcon = document.getElementById(`like_icon_${postId}`);
+    const likeCount = parseInt(likeIcon.textContent, 10);
 
-function handleLikePost(postId) {
-    console.log(`Like post ${postId}`);
-    fetch(`/like_post/${postId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-    })
-        .then(response => response.json())
-        .then(result => {
-            console.log(result);
+    if (isLiked) {
+        fetch(`/unlike_post/${postId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
         })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-}
-
-function handleUnlikePost(postId) {
-    console.log(`Unlike post ${postId}`);
-    fetch(`/unlike_post/${postId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-    })
-        .then(response => response.json())
-        .then(result => {
-            console.log(result);
+            .then(response => response.json())
+            .then(result => {
+                likeButton.innerHTML = `
+                    <button 
+                        class="btn btn-outline-primary"
+                        id="${postId}"
+                        onclick="handleLike('${postId}', false)"
+                    >
+                        <i 
+                            class="bi bi-heart"
+                            id="like_icon_${postId}"
+                        >${likeCount - 1}</i>
+                    </button>`;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    } else {
+        fetch(`/like_post/${postId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
         })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+            .then(response => response.json())
+            .then(result => {
+                likeButton.innerHTML = `
+                    <button 
+                        class="btn btn-primary"
+                        id="${postId}"
+                        onclick="handleLike('${postId}', true)"
+                    >
+                        <i 
+                            class="bi bi-heart-fill"
+                            id="like_icon_${postId}"
+                        >${likeCount + 1}</i>
+                    </button>`;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
 }

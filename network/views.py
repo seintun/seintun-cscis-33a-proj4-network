@@ -21,35 +21,66 @@ def get_users_who_like_post(post_id: uuid) -> list:
     return users
 
 
+def get_posts() -> list:
+    """
+    Get all posts
+    """
+    return get_list_or_404(Post.objects.all().order_by("-timestamp"))
+
+
+def get_user_likes(request: HttpRequest) -> list:
+    """
+    Get all the posts liked by the authenticated user
+    """
+    all_likes = Like.objects.all()
+    return [like.post.id for like in all_likes if like.user == request.user]
+
+
+def add_user_likes_to_posts(posts: list, request: HttpRequest) -> None:
+    """
+    Add user likes to the posts
+    """
+    for post in posts:
+        post.user_likes = get_users_who_like_post(post.id)
+        post.like_count = Like.objects.filter(post=post).count()
+        if request.user.is_authenticated:
+            user_id = User.objects.get(username=request.user)
+            post.post_liked = user_id in [user["user_id"] for user in post.user_likes]
+
+
 def index(request: HttpRequest) -> HttpResponse:
     """
-    Home page view
+    Index view with all posts
     posts: list[{
         id: uuid,
-        user: User,
         content: str,
         timestamp: datetime,
-        user_likes: list[User]
+        user: {
+            id: int,
+            username: str
+        },
+        user_likes: list[{
+            id: int,
+            user_id: int,
+            post_id: int
+        }],
+        like_count: int,
         post_liked: bool
     }]
     """
-    # Get all posts
-    posts = get_list_or_404(Post.objects.all().order_by("-timestamp"))
+    posts = get_posts()
+    post_liked = get_user_likes(request)
+    add_user_likes_to_posts(posts, request)
 
-    # Add user_likes to each post
-    for post in posts:
-        post.user_likes = get_users_who_like_post(post.id)
-        # Check if the current authenticated user has liked the post
-        if request.user.is_authenticated:
-            print(post.user_likes)
-            user_id = User.objects.get(username=request.user).id
-            post.post_liked = user_id in [user["user_id"] for user in post.user_likes]
-
-    # Paginate posts
     paginator = Paginator(posts, 10)
     page_number = request.GET.get("page")
     paginated_posts = paginator.get_page(page_number)
-    return render(request, "network/index.html", {"posts": paginated_posts})
+
+    return render(
+        request,
+        "network/index.html",
+        {"posts": paginated_posts, "post_liked": post_liked},
+    )
 
 
 def set_alert_message(
@@ -260,55 +291,17 @@ def delete_post(request: HttpRequest, post_id: uuid) -> HttpResponse:
     return HttpResponseRedirect(reverse("index"))
 
 
-@login_required
-def like_post(request: HttpRequest, post_id: uuid) -> JsonResponse:
-    """
-    Like a post
-    """
-    post = get_object_or_404(Post, id=post_id)
-    user = get_object_or_404(User, username=request.user.username)
-
-    # Check if the user has already liked the post
-    like = Like.objects.filter(user=user, post=post).first()
-
-    if not like:
-        like = Like(user=user, post=post)
-        like.save()
-        set_alert_message(request, "Post liked successfully!", messages.SUCCESS)
-        return JsonResponse(
-            {
-                "message": "Post liked successfully!",
-                "status": "success",
-            }
-        )
-    else:
-        return JsonResponse(
-            {"message": "You have already liked this post.", "status": "error"}
-        )
+def unlike_post(request, post_id):
+    post = Post.objects.get(id=post_id)
+    user = User.objects.get(pk=request.user.id)
+    like = Like.objects.filter(user=user, post=post)
+    like.delete()
+    return JsonResponse({"message": "Like removed"}, status=200)
 
 
-@login_required
-def unlike_post(request: HttpRequest, post_id: uuid) -> JsonResponse:
-    """
-    Unlike a post
-    """
-    post = get_object_or_404(Post, id=post_id)
-    user = get_object_or_404(User, username=request.user.username)
-
-    # Check if the user has already liked the post
-    like = Like.objects.filter(user=user, post=post).first()
-
-    if like:
-        like.delete()
-        set_alert_message(request, "Post unliked successfully!", messages.SUCCESS)
-        return JsonResponse(
-            {
-                "message": "Post unliked successfully!",
-                "status": "success",
-                "data": get_users_who_like_post(post_id),
-            }
-        )
-    else:
-        return JsonResponse(
-            {"message": "You have not liked this post.", "status": "error"}
-        )
+def like_post(request, post_id):
+    post = Post.objects.get(id=post_id)
+    user = User.objects.get(pk=request.user.id)
+    newLike = Like(user=user, post=post)
+    newLike.save()
+    return JsonResponse({"message": "Like added"}, status=200)
