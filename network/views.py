@@ -148,6 +148,7 @@ def register(request):
         return render(request, "network/register.html")
 
 
+@login_required
 def user_profile(request: HttpRequest, username: str) -> HttpResponse:
     """
     User profile view with all posts by the user
@@ -179,6 +180,7 @@ def user_profile(request: HttpRequest, username: str) -> HttpResponse:
     )
 
 
+@login_required
 def following(request: HttpRequest) -> HttpResponse:
     """
     Display all posts by users that the current user is following
@@ -293,6 +295,7 @@ def delete_post(request: HttpRequest, post_id: uuid) -> HttpResponse:
     return HttpResponseRedirect(reverse("index"))
 
 
+@login_required
 def unlike_post(request, post_id):
     post = Post.objects.get(id=post_id)
     user = User.objects.get(pk=request.user.id)
@@ -301,6 +304,7 @@ def unlike_post(request, post_id):
     return JsonResponse({"message": "Like removed"}, status=200)
 
 
+@login_required
 def like_post(request, post_id):
     post = Post.objects.get(id=post_id)
     user = User.objects.get(pk=request.user.id)
