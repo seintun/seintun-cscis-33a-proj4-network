@@ -122,22 +122,34 @@
                     </div>
                     <p id="post_content_{{ post.id }}">"{{ post.content }}"</p>
                     <div id="like_button_{{ post.id }}">
-                        {% if post.post_liked %}
+                        {% if user.is_authenticated %}
+                            {% if post.post_liked %}
+                                <button 
+                                    type="button"
+                                    class="btn btn-primary
+                                    id="like_button_{{ post.id }}"
+                                    onclick="handleUnlikePost('{{ post.id }}')">
+                                    <i class="bi bi-heart-fill" id="like_count_{{ post.id }}">
+                                        {{ post.user_likes.count }}
+                                    </i>
+                                </button>
+                            {% else %}
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-primary
+                                    id="like_button_{{ post.id }}"
+                                    onclick="handleLikePost('{{ post.id }}')">
+                                    <i class="bi bi-heart" id="like_count_{{ post.id }}">
+                                        {{ post.user_likes.count }}
+                                    </i>
+                                </button>
+                            {% endif %}
+                        {% else %}
+                            <!-- If user is not authenticated, disable the like button -->
                             <button 
                                 type="button"
-                                class="btn btn-primary
-                                id="like_button_{{ post.id }}"
-                                onclick="handleUnlikePost('{{ post.id }}')">
-                                <i class="bi bi-heart-fill" id="like_count_{{ post.id }}">
-                                    {{ post.user_likes.count }}
-                                </i>
-                            </button>
-                        {% else %}
-                            <button
-                                type="button"
-                                class="btn btn-outline-primary
-                                id="like_button_{{ post.id }}"
-                                onclick="handleLikePost('{{ post.id }}')">
+                                class="btn btn-secondary"
+                                disabled>
                                 <i class="bi bi-heart" id="like_count_{{ post.id }}">
                                     {{ post.user_likes.count }}
                                 </i>

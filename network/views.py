@@ -33,15 +33,17 @@ def index(request: HttpRequest) -> HttpResponse:
         post_liked: bool
     }]
     """
-    # Get id of current user
-    user_id = User.objects.get(username=request.user).id
     # Get all posts
     posts = get_list_or_404(Post.objects.all().order_by("-timestamp"))
 
     # Add user_likes to each post
     for post in posts:
         post.user_likes = get_users_who_like_post(post.id)
-        post.post_liked = user_id in [user["user_id"] for user in post.user_likes]
+        # Check if the current authenticated user has liked the post
+        if request.user.is_authenticated:
+            print(post.user_likes)
+            user_id = User.objects.get(username=request.user).id
+            post.post_liked = user_id in [user["user_id"] for user in post.user_likes]
 
     # Paginate posts
     paginator = Paginator(posts, 10)
